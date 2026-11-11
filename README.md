@@ -56,6 +56,34 @@ The models are registered under a custom provider ID, for example `deepai/glm-5.
 - The model list, names, availability, and usage limits can change. Only configure models you are authorized to use.
 - A local relay adds another process to maintain and troubleshoot; it is not a hosted service.
 
+## Health check and troubleshooting
+
+Verify the whole configured path, rather than only checking whether the local
+port is open:
+
+1. Confirm the bridge service is running and listening on its loopback address.
+2. Make an authenticated request to the bridge's status endpoint using the
+   locally stored bridge credential. A reachable port alone does not verify
+   authorization.
+3. Run a minimal configured-model request, for example:
+
+   ```sh
+   opencode run -m deepai/glm-5.3-flash "Reply only: ok"
+   ```
+
+4. If it fails, check the bridge's redacted service logs for the HTTP status or
+   timeout. Do not paste account keys, bearer tokens, cookies, or request
+   headers into tickets or issues.
+
+The local maintenance fix described here addresses a relay lifecycle bug: response
+closure after a completed request must not be handled as a client cancellation.
+The bridge now cancels upstream work only when the client disconnects before the
+response completes. After changing a locally managed bridge, syntax-check it,
+restart its service, and repeat the configured-model request above.
+
+This note describes diagnosis and expected behavior only. The machine-specific
+bridge source and credentials remain intentionally out of this public repository.
+
 ## Scope of this repository
 
 This public repository documents the architecture and lessons learned. It does **not** contain the bridge, private account data, tokens, machine identifiers, or setup scripts. That separation is intentional: the original bridge was tailored to one machine and depends on local credentials and an undocumented upstream interface.
